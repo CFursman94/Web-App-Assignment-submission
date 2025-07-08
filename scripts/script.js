@@ -11,6 +11,7 @@ async function loadGrounds() {
   const { data, error } = await supabaseClient.from('grounds').select('*');
   if (error) return console.error("Failed to load grounds", error);
 
+  voteCounts = await getVotesPerGround();
   allGrounds = data;
   renderGrounds(data);
 }
@@ -126,6 +127,23 @@ async function submitFeedback() {
 // A helper to convert number to stars
 function renderStars(rating) {
   return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+}
+
+
+// Trying to get total votes per each ground, for showing under the upvote button
+async function getVotesPerGround(){
+  const { data, error} = await supabaseClient.from("votes").select('ground_id', {count: 'exact', head:false});
+
+  if(error){
+    console.log("Vote count fetch failed:", error.message);
+    return{}
+  }
+
+  const counts = {}
+  data.forEach(v => {
+    counts[v.ground_id]=(counts[v.ground_id] || 0) +1;
+  });
+  return counts;
 }
 
 
